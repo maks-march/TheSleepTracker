@@ -1,12 +1,15 @@
 *.iml
+.DS_Store
+.cxx
+.externalNativeBuild
 .gradle
-/local.properties
+.kotlin/
 /.idea
 .DS_Store
 */build
 /captures
-.externalNativeBuild
-.cxx
+/local.properties
+build/
 local.properties
-/apk/
-*.apk
+# APK для скачивания лежит в /apk/ — намеренно в репозитории
+!/apk/

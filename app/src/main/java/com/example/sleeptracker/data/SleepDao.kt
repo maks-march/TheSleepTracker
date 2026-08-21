@@ -14,6 +14,10 @@ interface SleepDao {
     @Query("SELECT * FROM sleep_entries ORDER BY wakeTime DESC")
     fun observeAll(): Flow<List<SleepEntry>>
 
+    /** Разовое чтение — для BroadcastReceiver, где нет места подписке на Flow. */
+    @Query("SELECT * FROM sleep_entries ORDER BY wakeTime DESC")
+    suspend fun getAllOnce(): List<SleepEntry>
+
     @Query("SELECT * FROM sleep_entries WHERE id = :id")
     suspend fun getById(id: Long): SleepEntry?
 

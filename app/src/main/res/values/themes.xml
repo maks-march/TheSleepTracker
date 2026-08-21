@@ -1,8 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.SleepTracker" parent="android:Theme.Material.NoActionBar">
-        <item name="android:windowBackground">@color/night_background</item>
-        <item name="android:statusBarColor">@color/night_background</item>
-        <item name="android:navigationBarColor">@color/night_background</item>
+    <!-- DayNight: windowBackground берётся из values-night при тёмной теме -->
+    <style name="Theme.SleepTracker" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="android:windowBackground">@color/window_background</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+
+    <!-- системный выбор времени барабанами (прокруткой), а не циферблатом -->
+    <style name="SpinnerTimePicker" parent="Theme.AppCompat.DayNight.Dialog.Alert">
+        <item name="android:timePickerMode">spinner</item>
+        <item name="android:datePickerMode">spinner</item>
     </style>
 </resources>

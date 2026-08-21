@@ -1,7 +1,5 @@
 package com.example.sleeptracker.ui.screens
 
-import android.app.DatePickerDialog
-import android.app.TimePickerDialog
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -38,11 +36,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.sleeptracker.R
+import com.example.sleeptracker.ui.components.screenBackgroundColor
 import com.example.sleeptracker.analytics.formatMinutes
 import com.example.sleeptracker.data.SleepEntry
 import com.example.sleeptracker.ui.SleepViewModel
+import com.example.sleeptracker.ui.components.showDatePicker
+import com.example.sleeptracker.ui.components.showTimePicker
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -50,8 +53,8 @@ import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-private val dateFmt = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale("ru"))
-private val timeFmt = DateTimeFormatter.ofPattern("HH:mm")
+private fun dateFmt() = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.getDefault())
+private val timeFmt: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,7 +65,7 @@ fun EntryEditorScreen(
 ) {
     val context = LocalContext.current
 
-    // значения по умолчанию: лёг вчера в 23:00, встал сегодня в 7:00
+    // по умолчанию: лёг вчера в 23:00, встал сегодня в 7:00
     var bedTime by remember {
         mutableStateOf(LocalDateTime.of(LocalDate.now().minusDays(1), LocalTime.of(23, 0)))
     }
@@ -92,17 +95,26 @@ fun EntryEditorScreen(
     val valid = totalMinutes > 0
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = screenBackgroundColor(),
         topBar = {
             TopAppBar(
-                title = { Text(if (entryId == 0L) "Новая запись" else "Изменить запись") },
+                title = {
+                    Text(
+                        stringResource(
+                            if (entryId == 0L) R.string.editor_new else R.string.editor_edit
+                        )
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onDone) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.editor_back),
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
+                    containerColor = screenBackgroundColor(),
                 ),
             )
         },
@@ -117,7 +129,9 @@ fun EntryEditorScreen(
         ) {
             // Итог
             Card(
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
+        ),
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Column(
@@ -125,13 +139,13 @@ fun EntryEditorScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Text(
-                        "Сон",
+                        stringResource(R.string.editor_sleep),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        if (valid) formatMinutes(sleepMinutes) else "—",
+                        if (valid) formatMinutes(context, sleepMinutes) else "—",
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary,
@@ -139,7 +153,7 @@ fun EntryEditorScreen(
                     if (!valid) {
                         Spacer(Modifier.height(4.dp))
                         Text(
-                            "Пробуждение должно быть позже отхода ко сну",
+                            stringResource(R.string.editor_invalid_range),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.error,
                         )
@@ -147,39 +161,39 @@ fun EntryEditorScreen(
                 }
             }
 
-            SectionTitle("Лёг спать")
+            SectionTitle(stringResource(R.string.editor_bed_time))
             DateTimeRow(
-                dateText = bedTime.format(dateFmt),
+                dateText = bedTime.format(dateFmt()),
                 timeText = bedTime.format(timeFmt),
                 onPickDate = {
-                    pickDate(context, bedTime) { d ->
+                    showDatePicker(context, bedTime.toLocalDate()) { d ->
                         bedTime = LocalDateTime.of(d, bedTime.toLocalTime())
                     }
                 },
                 onPickTime = {
-                    pickTime(context, bedTime) { t ->
+                    showTimePicker(context, bedTime.toLocalTime()) { t ->
                         bedTime = LocalDateTime.of(bedTime.toLocalDate(), t)
                     }
                 },
             )
 
-            SectionTitle("Проснулся")
+            SectionTitle(stringResource(R.string.editor_wake_time))
             DateTimeRow(
-                dateText = wakeTime.format(dateFmt),
+                dateText = wakeTime.format(dateFmt()),
                 timeText = wakeTime.format(timeFmt),
                 onPickDate = {
-                    pickDate(context, wakeTime) { d ->
+                    showDatePicker(context, wakeTime.toLocalDate()) { d ->
                         wakeTime = LocalDateTime.of(d, wakeTime.toLocalTime())
                     }
                 },
                 onPickTime = {
-                    pickTime(context, wakeTime) { t ->
+                    showTimePicker(context, wakeTime.toLocalTime()) { t ->
                         wakeTime = LocalDateTime.of(wakeTime.toLocalDate(), t)
                     }
                 },
             )
 
-            SectionTitle("Засыпал (по ощущениям): $fallAsleep мин")
+            SectionTitle(stringResource(R.string.editor_fall_asleep, fallAsleep))
             Slider(
                 value = fallAsleep.toFloat(),
                 onValueChange = { fallAsleep = it.toInt() },
@@ -187,7 +201,7 @@ fun EntryEditorScreen(
                 steps = 23, // шаг 5 минут
             )
 
-            SectionTitle("Оценка сна: $quality / 10")
+            SectionTitle(stringResource(R.string.editor_quality, quality))
             Slider(
                 value = quality.toFloat(),
                 onValueChange = { quality = it.toInt() },
@@ -195,12 +209,12 @@ fun EntryEditorScreen(
                 steps = 8,
             )
 
-            SectionTitle("Примечания")
+            SectionTitle(stringResource(R.string.editor_notes))
             OutlinedTextField(
                 value = note,
                 onValueChange = { note = it },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Например: пил кофе вечером, просыпался ночью…") },
+                placeholder = { Text(stringResource(R.string.editor_notes_hint)) },
                 minLines = 3,
             )
 
@@ -221,7 +235,7 @@ fun EntryEditorScreen(
                 enabled = valid && loaded,
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text("Сохранить")
+                Text(stringResource(R.string.editor_save))
             }
             Spacer(Modifier.height(8.dp))
         }
@@ -248,32 +262,4 @@ private fun DateTimeRow(
         OutlinedButton(onClick = onPickDate, modifier = Modifier.weight(1.6f)) { Text(dateText) }
         OutlinedButton(onClick = onPickTime, modifier = Modifier.weight(1f)) { Text(timeText) }
     }
-}
-
-private fun pickDate(
-    context: android.content.Context,
-    current: LocalDateTime,
-    onPicked: (LocalDate) -> Unit,
-) {
-    DatePickerDialog(
-        context,
-        { _, y, m, d -> onPicked(LocalDate.of(y, m + 1, d)) },
-        current.year,
-        current.monthValue - 1,
-        current.dayOfMonth,
-    ).show()
-}
-
-private fun pickTime(
-    context: android.content.Context,
-    current: LocalDateTime,
-    onPicked: (LocalTime) -> Unit,
-) {
-    TimePickerDialog(
-        context,
-        { _, h, m -> onPicked(LocalTime.of(h, m)) },
-        current.hour,
-        current.minute,
-        true,
-    ).show()
 }

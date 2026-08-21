@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="time_picker_title">Choose time</string>
+    <string name="time_picker_hours">Choose hours</string>
+    <string name="time_picker_minutes">Choose minutes</string>
+    <string name="time_picker_ok">Ok</string>
+    <string name="time_picker_cancel">Cancel</string>
+</resources>

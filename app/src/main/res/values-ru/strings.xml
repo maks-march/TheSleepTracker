@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">TheSleepTracker</string>
+
+    <!-- Вкладки -->
+    <string name="tab_journal">Дневник</string>
+    <string name="tab_analytics">Аналитика</string>
+    <string name="tab_settings">Настройки</string>
+
+    <!-- Дневник -->
+    <string name="journal_title">Дневник сна</string>
+    <string name="journal_empty">Пока нет записей.\nНажмите «+», чтобы добавить сон.</string>
+    <string name="journal_add">Добавить запись</string>
+    <string name="journal_delete">Удалить</string>
+    <string name="journal_fell_asleep_in">засыпал %1$d мин</string>
+    <string name="journal_quality_short">%1$d/10</string>
+
+    <!-- Редактор -->
+    <string name="editor_new">Новая запись</string>
+    <string name="editor_edit">Изменить запись</string>
+    <string name="editor_back">Назад</string>
+    <string name="editor_sleep">Сон</string>
+    <string name="editor_invalid_range">Пробуждение должно быть позже отхода ко сну</string>
+    <string name="editor_bed_time">Лёг спать</string>
+    <string name="editor_wake_time">Проснулся</string>
+    <string name="editor_fall_asleep">Засыпал (по ощущениям): %1$d мин</string>
+    <string name="editor_quality">Оценка сна: %1$d / 10</string>
+    <string name="editor_notes">Примечания</string>
+    <string name="editor_notes_hint">Например: пил кофе вечером, просыпался ночью…</string>
+    <string name="editor_save">Сохранить</string>
+
+    <!-- Аналитика -->
+    <string name="analytics_title">Аналитика</string>
+    <string name="period_week">Неделя</string>
+    <string name="period_month">Месяц</string>
+    <string name="period_year">Год</string>
+    <string name="analytics_chart_days">Сон по дням, ч</string>
+    <string name="analytics_chart_months">Средний сон за ночь, ч</string>
+    <string name="analytics_no_data">Нет данных за этот период</string>
+    <string name="analytics_avg_sleep">Средний сон</string>
+    <string name="analytics_avg_quality">Оценка</string>
+    <string name="analytics_avg_fall_asleep">Засыпание</string>
+    <string name="analytics_share">Поделиться</string>
+    <string name="analytics_share_chooser">Поделиться результатами</string>
+
+    <!-- Текст «поделиться» -->
+    <string name="share_header">Мой сон · %1$s</string>
+    <string name="share_avg_sleep">Средний сон: %1$s</string>
+    <string name="share_avg_quality">Средняя оценка: %1$s/10</string>
+    <string name="share_avg_fall_asleep">Засыпание: %1$d мин</string>
+    <string name="share_nights">Записано ночей: %1$d</string>
+    <string name="share_best_night">Лучшая ночь: %1$s</string>
+    <string name="share_footer">Отслеживаю в TheSleepTracker</string>
+    <string name="share_download">Скачать приложение: %1$s</string>
+    <string name="share_subject">Моя статистика сна · TheSleepTracker</string>
+
+    <!-- Настройки -->
+    <string name="settings_title">Настройки</string>
+    <string name="settings_language">Язык</string>
+    <string name="settings_language_system">Системный</string>
+    <string name="settings_language_en">English</string>
+    <string name="settings_language_ru">Русский</string>
+    <string name="settings_data">Данные</string>
+    <string name="settings_export">Экспорт в Excel</string>
+    <string name="settings_export_subtitle">Сохранить все записи в файл .xlsx</string>
+    <string name="settings_export_empty">Пока нечего экспортировать</string>
+    <string name="settings_export_error">Не удалось выполнить экспорт</string>
+    <string name="settings_about">О приложении</string>
+    <string name="settings_about_text">Простой трекер сна. Все данные хранятся только на вашем устройстве.</string>
+    <string name="settings_version">Версия %1$s</string>
+    <string name="settings_source">Проект на GitHub</string>
+    <string name="settings_source_subtitle">Исходный код и загрузка APK</string>
+
+    <!-- Excel -->
+    <string name="excel_sheet_name">Сон</string>
+    <string name="excel_col_date">Дата</string>
+    <string name="excel_col_bed_time">Лёг спать</string>
+    <string name="excel_col_wake_time">Проснулся</string>
+    <string name="excel_col_fall_asleep">Засыпание, мин</string>
+    <string name="excel_col_sleep_hours">Сон, ч</string>
+    <string name="excel_col_quality">Оценка</string>
+    <string name="excel_col_note">Примечание</string>
+
+    <!-- Единицы -->
+    <string name="unit_h">%1$d ч</string>
+    <string name="unit_min">%1$d мин</string>
+    <string name="unit_h_min">%1$d ч %2$d мин</string>
+
+    <!-- Оформление -->
+    <string name="settings_theme">Оформление</string>
+    <string name="settings_theme_system">Как в системе</string>
+    <string name="settings_theme_light">Светлая</string>
+    <string name="settings_theme_dark">Тёмная</string>
+    <string name="settings_background">Фоновое изображение</string>
+    <string name="settings_background_pick">Выбрать фото</string>
+    <string name="settings_background_change">Заменить фото</string>
+    <string name="settings_background_remove">Убрать</string>
+    <string name="settings_background_hint">Ваше фото будет показано на фоне приложения</string>
+    <string name="settings_background_error">Не удалось загрузить изображение</string>
+    <string name="settings_background_dim">Затемнение: %1$d%%</string>
+
+    <!-- Напоминания -->
+    <string name="settings_reminders">Напоминания</string>
+    <string name="settings_bedtime_reminder">Напоминание лечь спать</string>
+    <string name="settings_bedtime_reminder_desc">В среднее время отхода ко сну — %1$s</string>
+    <string name="settings_morning_reminder">Утреннее напоминание</string>
+    <string name="settings_morning_reminder_desc">Беззвучно, в среднее время подъёма — %1$s</string>
+    <string name="settings_reminders_hint">Время рассчитывается по вашим последним записям и обновляется само.</string>
+    <string name="settings_notifications_denied">Разрешите уведомления, чтобы получать напоминания</string>
+
+    <!-- Уведомления -->
+    <string name="channel_bedtime">Отход ко сну</string>
+    <string name="channel_bedtime_desc">Напоминает вовремя лечь спать</string>
+    <string name="channel_morning">Утренняя запись</string>
+    <string name="channel_morning_desc">Беззвучное напоминание записать прошедшую ночь</string>
+    <string name="notif_bedtime_title">Пора укладываться</string>
+    <string name="notif_bedtime_text">Обычно вы ложитесь примерно сейчас.</string>
+    <string name="notif_morning_title">Как спалось?</string>
+    <string name="notif_morning_text">Запишите прошедшую ночь, пока помните.</string>
+
+    <!-- Первый запуск -->
+    <string name="onboarding_title">Включить напоминания?</string>
+    <string name="onboarding_text">TheSleepTracker может напоминать лечь спать в привычное время и беззвучно подсказывать утром, что пора внести запись. Время подстраивается под ваши привычки автоматически.</string>
+    <string name="onboarding_enable">Включить</string>
+    <string name="onboarding_skip">Не сейчас</string>
+
+    <!-- Обновление -->
+    <string name="settings_update">Скачать свежий APK</string>
+    <string name="settings_update_subtitle">Загружает сборку с GitHub и предлагает установить</string>
+    <string name="update_started">Загрузка…</string>
+    <string name="update_done">Загрузка завершена</string>
+    <string name="update_failed">Не удалось загрузить</string>
+
+    <!-- Обрезка -->
+    <string name="crop_title">Обрезка фона</string>
+    <string name="crop_hint">Двигайте пальцем, щипком меняйте масштаб. Видимая область станет фоном.</string>
+    <string name="crop_apply">Применить</string>
+    <string name="crop_cancel">Отмена</string>
+
+    <!-- Обновление -->
+    <string name="settings_check_update">Проверить обновления</string>
+    <string name="update_checking">Проверяем…</string>
+    <string name="update_up_to_date">У вас последняя версия (%1$s)</string>
+    <string name="update_available">Доступна версия %1$s</string>
+    <string name="update_download">Обновить</string>
+    <string name="update_later">Позже</string>
+    <string name="update_no_connection">Не удалось связаться с GitHub</string>
+
+    <!-- Экспорт -->
+    <string name="settings_export_saved">Сохранено в «Загрузки»: %1$s</string>
+
+    <!-- Кнопки в шапке -->
+    <string name="action_settings">Настройки</string>
+    <string name="action_share">Поделиться</string>
+
+    <string name="time_picker_title">Выберите время</string>
+    <string name="time_picker_hours">Выберите часы</string>
+    <string name="time_picker_minutes">Выберите минуты</string>
+    <string name="time_picker_ok">Ok</string>
+    <string name="time_picker_cancel">Отмена</string>
+</resources>

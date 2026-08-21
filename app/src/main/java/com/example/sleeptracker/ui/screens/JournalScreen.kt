@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material3.Card
@@ -28,20 +29,24 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.sleeptracker.R
+import com.example.sleeptracker.ui.components.screenBackgroundColor
 import com.example.sleeptracker.analytics.formatMinutes
 import com.example.sleeptracker.data.SleepEntry
 import com.example.sleeptracker.ui.SleepViewModel
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-private val dateFmt = DateTimeFormatter.ofPattern("EEEE, d MMMM", Locale("ru"))
-private val timeFmt = DateTimeFormatter.ofPattern("HH:mm")
+private fun dateFmt() = DateTimeFormatter.ofPattern("EEEE, d MMMM", Locale.getDefault())
+private val timeFmt: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,22 +54,31 @@ fun JournalScreen(
     vm: SleepViewModel,
     onAdd: () -> Unit,
     onEdit: (Long) -> Unit,
+    onOpenSettings: () -> Unit = {},
 ) {
     val entries by vm.entries.collectAsState()
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = screenBackgroundColor(),
         topBar = {
             TopAppBar(
-                title = { Text("Дневник сна") },
+                title = { Text(stringResource(R.string.journal_title)) },
+                actions = {
+                    IconButton(onClick = onOpenSettings) {
+                        Icon(
+                            Icons.Default.Settings,
+                            contentDescription = stringResource(R.string.action_settings),
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
+                    containerColor = screenBackgroundColor(),
                 ),
             )
         },
         floatingActionButton = {
             FloatingActionButton(onClick = onAdd) {
-                Icon(Icons.Default.Add, contentDescription = "Добавить запись")
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.journal_add))
             }
         },
     ) { padding ->
@@ -74,7 +88,7 @@ fun JournalScreen(
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    "Пока нет записей.\nНажмите «+», чтобы добавить сон.",
+                    stringResource(R.string.journal_empty),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodyLarge,
                 )
@@ -99,30 +113,39 @@ fun JournalScreen(
 
 @Composable
 private fun EntryCard(entry: SleepEntry, onClick: () -> Unit, onDelete: () -> Unit) {
+    val context = LocalContext.current
     Card(
         modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
+        ),
     ) {
         Column(Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     Text(
-                        entry.wakeTime.format(dateFmt).replaceFirstChar { it.uppercase() },
+                        entry.wakeTime.format(dateFmt()).replaceFirstChar { it.uppercase() },
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        formatMinutes(entry.sleepMinutes),
+                        formatMinutes(context, entry.sleepMinutes),
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.SemiBold,
                     )
                 }
-                QualityBadge(entry.quality)
+                Text(
+                    stringResource(R.string.journal_quality_short, entry.quality),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(end = 4.dp),
+                )
                 IconButton(onClick = onDelete) {
                     Icon(
                         Icons.Outlined.DeleteOutline,
-                        contentDescription = "Удалить",
+                        contentDescription = stringResource(R.string.journal_delete),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
@@ -130,7 +153,7 @@ private fun EntryCard(entry: SleepEntry, onClick: () -> Unit, onDelete: () -> Un
             Spacer(Modifier.height(8.dp))
             Text(
                 "${entry.bedTime.format(timeFmt)} → ${entry.wakeTime.format(timeFmt)}  ·  " +
-                    "засыпал ${entry.fallAsleepMinutes} мин",
+                    stringResource(R.string.journal_fell_asleep_in, entry.fallAsleepMinutes),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -143,21 +166,5 @@ private fun EntryCard(entry: SleepEntry, onClick: () -> Unit, onDelete: () -> Un
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun QualityBadge(quality: Int) {
-    Box(
-        Modifier
-            .padding(end = 4.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            "$quality/10",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary,
-        )
     }
 }
