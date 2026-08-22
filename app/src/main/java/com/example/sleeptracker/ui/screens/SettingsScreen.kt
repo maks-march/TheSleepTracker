@@ -361,6 +361,7 @@ private fun UpdateCard() {
     val noConnectionMsg = stringResource(R.string.update_no_connection)
     val startedMsg = stringResource(R.string.update_started)
     val failedMsg = stringResource(R.string.update_failed)
+    val needsPermissionMsg = stringResource(R.string.update_needs_permission)
 
     var checking by remember { mutableStateOf(false) }
     var available by remember { mutableStateOf<UpdateChecker.Result?>(null) }
@@ -378,9 +379,16 @@ private fun UpdateCard() {
                         val msg = when (status) {
                             is ApkDownloader.Status.Running -> startedMsg
                             is ApkDownloader.Status.Failed -> failedMsg
+                            is ApkDownloader.Status.NeedsInstallPermission ->
+                                needsPermissionMsg
                             else -> null
                         }
-                        if (msg != null) Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                        if (msg != null) {
+                            val length =
+                                if (status is ApkDownloader.Status.NeedsInstallPermission)
+                                    Toast.LENGTH_LONG else Toast.LENGTH_SHORT
+                            Toast.makeText(context, msg, length).show()
+                        }
                     }
                 }) { Text(stringResource(R.string.update_download)) }
             },

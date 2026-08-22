@@ -13,3 +13,4 @@ build/
 local.properties
 # APK для скачивания лежит в /apk/ — намеренно в репозитории
 !/apk/
+keystore.properties

@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -13,8 +15,8 @@ android {
         applicationId = "com.example.sleeptracker"
         minSdk = 26
         targetSdk = 35
-        versionCode = 4
-        versionName = "1.3"
+        versionCode = 5
+        versionName = "1.4"
 
         // Ссылки на проект и прямую загрузку APK — используются в «Поделиться» и настройках
         buildConfigField(
@@ -34,12 +36,28 @@ android {
         )
     }
 
+    signingConfigs {
+        create("release") {
+            // Постоянный ключ: обновления ставятся поверх только при совпадении подписи.
+            // Пароли лежат в keystore.properties (вне git) либо берутся значения по умолчанию.
+            val props = Properties()
+            val propsFile = rootProject.file("keystore.properties")
+            if (propsFile.exists()) props.load(propsFile.inputStream())
+
+            storeFile = rootProject.file(
+                props.getProperty("storeFile") ?: "keystore/thesleeptracker.jks"
+            )
+            storePassword = props.getProperty("storePassword") ?: "thesleeptracker"
+            keyAlias = props.getProperty("keyAlias") ?: "release"
+            keyPassword = props.getProperty("keyPassword") ?: "thesleeptracker"
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            // подписываем debug-ключом, чтобы APK из репозитория ставился без настройки keystore
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 

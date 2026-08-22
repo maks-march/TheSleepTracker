@@ -9,6 +9,7 @@ import android.database.Cursor
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import android.provider.Settings
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import com.example.sleeptracker.BuildConfig
@@ -30,13 +31,45 @@ object ApkDownloader {
         data object Idle : Status
         data object Running : Status
         data object Done : Status
+
+        /** Скачано, но система не разрешает ставить APK из этого источника. */
+        data object NeedsInstallPermission : Status
         data class Failed(val reason: String?) : Status
+    }
+
+    /**
+     * Может ли приложение самостоятельно запустить установку.
+     * С Android 8 для этого нужно отдельное разрешение пользователя.
+     */
+    fun canInstall(context: Context): Boolean =
+        Build.VERSION.SDK_INT < Build.VERSION_CODES.O ||
+            context.packageManager.canRequestPackageInstalls()
+
+    /** Открывает системный экран «Установка неизвестных приложений» для нашего пакета. */
+    fun openInstallPermissionSettings(context: Context) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+        val intent = Intent(
+            Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+            Uri.parse("package:${context.packageName}"),
+        ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        try {
+            context.startActivity(intent)
+        } catch (e: Exception) {
+            // на некоторых прошивках экрана нет — открываем общие настройки
+            try {
+                context.startActivity(
+                    Intent(Settings.ACTION_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                )
+            } catch (ignored: Exception) {
+                // ничего не поделать
+            }
+        }
     }
 
     /**
      * Ставит загрузку в очередь.
      *
-     * @param onStatus вызывается в главном потоке при изменении состояния
+     * @param onStatus вызывается при изменении состояния
      * @return id загрузки или null, если сервис недоступен
      */
     fun enqueue(context: Context, onStatus: (Status) -> Unit): Long? {
@@ -78,7 +111,11 @@ object ApkDownloader {
                     intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1L)
                 if (finishedId != id) return
 
-                app.unregisterReceiver(this)
+                try {
+                    app.unregisterReceiver(this)
+                } catch (ignored: Exception) {
+                    // уже снят
+                }
 
                 val manager = app.getSystemService(DownloadManager::class.java)
                 if (manager == null) {
@@ -87,11 +124,19 @@ object ApkDownloader {
                 }
 
                 val (status, reason) = queryStatus(manager, id)
-                if (status == DownloadManager.STATUS_SUCCESSFUL) {
-                    onStatus(Status.Done)
-                    install(app, id, manager)
-                } else {
+                if (status != DownloadManager.STATUS_SUCCESSFUL) {
                     onStatus(Status.Failed(reason))
+                    return
+                }
+
+                onStatus(Status.Done)
+
+                if (canInstall(app)) {
+                    install(app)
+                } else {
+                    // без разрешения установщик молча не откроется — говорим об этом
+                    onStatus(Status.NeedsInstallPermission)
+                    openInstallPermissionSettings(app)
                 }
             }
         }
@@ -125,19 +170,18 @@ object ApkDownloader {
     }
 
     /** Открывает системный установщик для скачанного файла. */
-    private fun install(app: Context, id: Long, manager: DownloadManager) {
+    fun install(app: Context) {
         val file = File(
             app.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS),
             FILE_NAME,
         )
         if (!file.exists()) return
 
-        val uri: Uri =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                FileProvider.getUriForFile(app, "${app.packageName}.fileprovider", file)
-            } else {
-                Uri.fromFile(file)
-            }
+        val uri: Uri = FileProvider.getUriForFile(
+            app,
+            "${app.packageName}.fileprovider",
+            file,
+        )
 
         val intent = Intent(Intent.ACTION_VIEW).apply {
             setDataAndType(uri, MIME_APK)
@@ -151,4 +195,8 @@ object ApkDownloader {
             // установщик недоступен — файл всё равно лежит в Downloads
         }
     }
+
+    /** Уже скачанный файл — чтобы предложить установку повторно. */
+    fun downloadedFileExists(app: Context): Boolean =
+        File(app.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), FILE_NAME).exists()
 }

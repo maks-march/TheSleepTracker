@@ -158,4 +158,5 @@
     <string name="time_picker_minutes">Выберите минуты</string>
     <string name="time_picker_ok">Ok</string>
     <string name="time_picker_cancel">Отмена</string>
+    <string name="update_needs_permission">Разрешите установку приложений из TheSleepTracker и нажмите «Обновить» ещё раз</string>
 </resources>

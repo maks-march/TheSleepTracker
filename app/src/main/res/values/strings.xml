@@ -158,4 +158,5 @@
     <string name="time_picker_minutes">Choose minutes</string>
     <string name="time_picker_ok">Ok</string>
     <string name="time_picker_cancel">Cancel</string>
+    <string name="update_needs_permission">Allow installing apps from TheSleepTracker, then tap Update again</string>
 </resources>
