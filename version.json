@@ -1,5 +1,5 @@
 {
   "versionCode": 5,
-  "versionName": "1.4",
+  "versionName": "1.5",
   "notes": "Fixed in-app update: version check, install permission and a permanent signing key."
 }
