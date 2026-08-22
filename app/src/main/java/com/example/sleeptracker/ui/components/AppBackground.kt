@@ -9,17 +9,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import com.example.sleeptracker.settings.AppSettings
 import java.io.File
 
 /**
  * Рисует пользовательское фото под содержимым приложения.
  *
- * Поверх фото кладётся полупрозрачная заливка цветом фона темы — без неё
- * текст на пёстрой картинке нечитаем. Если фото нет, показывается обычный фон.
+ * Поверх фото кладётся полупрозрачная заливка **цветом фона текущей темы**.
+ * Брать здесь чёрный нельзя: в светлой теме текст тёмный, и на затемнённом
+ * фото он становится нечитаемым. Заливка цветом темы держит контраст
+ * одинаковым в обоих режимах. Если фото нет, показывается обычный фон.
  */
 @Composable
 fun AppBackground(
@@ -27,6 +31,9 @@ fun AppBackground(
     dim: Float,
     content: @Composable () -> Unit,
 ) {
+    // заливка поверх фото: светлая тема — светлая, тёмная — тёмная
+    val scrimColor = MaterialTheme.colorScheme.background
+
     val bitmap: ImageBitmap? = remember(backgroundPath) {
         backgroundPath
             ?.let { path -> File(path).takeIf { it.exists() } }
@@ -57,7 +64,7 @@ fun AppBackground(
             Box(
                 Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = dim.coerceIn(0f, 0.9f)))
+                    .background(scrimColor.copy(alpha = dim.coerceIn(0f, 0.9f)))
             )
         }
         content()
@@ -82,7 +89,5 @@ private fun calculateSampleSize(width: Int, height: Int): Int {
  */
 @Composable
 fun screenBackgroundColor(): Color =
-    if (com.example.sleeptracker.settings.AppSettings.state.collectAsState().value
-            .hasBackgroundImage
-    ) Color.Transparent
-    else androidx.compose.material3.MaterialTheme.colorScheme.background
+    if (AppSettings.state.collectAsState().value.hasBackgroundImage) Color.Transparent
+    else MaterialTheme.colorScheme.background

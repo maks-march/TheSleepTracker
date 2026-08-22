@@ -1,6 +1,7 @@
 package com.example.sleeptracker.ui
 
 import android.app.Application
+import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -8,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.sleeptracker.analytics.Period
 import com.example.sleeptracker.analytics.PeriodSummary
 import com.example.sleeptracker.analytics.buildSummary
+import com.example.sleeptracker.data.SleepBackup
 import com.example.sleeptracker.data.SleepDatabase
 import com.example.sleeptracker.data.SleepEntry
 import com.example.sleeptracker.data.SleepRepository
@@ -26,7 +28,8 @@ import java.time.LocalTime
 
 class SleepViewModel(app: Application) : AndroidViewModel(app) {
 
-    private val repo = SleepRepository(SleepDatabase.get(app).sleepDao())
+    private val dao = SleepDatabase.get(app).sleepDao()
+    private val repo = SleepRepository(dao)
 
     val entries: StateFlow<List<SleepEntry>> = repo.entries
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
@@ -76,6 +79,19 @@ class SleepViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun save(entry: SleepEntry) = viewModelScope.launch { repo.save(entry) }
+
+    /** Сохраняет резервную копию в «Загрузки». */
+    fun backup(onResult: (SleepBackup.Saved?) -> Unit) = viewModelScope.launch {
+        val app = getApplication<Application>()
+        onResult(SleepBackup.exportToDownloads(app, dao.getAllOnce()))
+    }
+
+    /** Восстанавливает записи из выбранного файла, не удаляя существующие. */
+    fun restore(uri: Uri, onResult: (SleepBackup.Restored?) -> Unit) =
+        viewModelScope.launch {
+            val app = getApplication<Application>()
+            onResult(SleepBackup.importFrom(app, uri, dao))
+        }
 
     fun delete(entry: SleepEntry) = viewModelScope.launch { repo.delete(entry) }
 

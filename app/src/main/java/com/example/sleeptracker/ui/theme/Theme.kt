@@ -24,6 +24,16 @@ val TextPrimary = Color(0xFFE7EAF0)
 val TextSecondary = Color(0xFF98A2B8)
 val Danger = Color(0xFFFF6B6B)
 
+// ---- Цвета столбиков аналитики (оценка сна) ----
+// Одинаковы в обеих темах: столбики лежат на карточке, а не на фоне,
+// и смысл цвета не должен меняться при переключении темы.
+/** 0–4 балла. */
+val QualityPoor = Color(0xFFE5484D)
+/** 5–7 баллов. */
+val QualityFair = Color(0xFFF5A524)
+/** 8–10 баллов. */
+val QualityGood = Color(0xFF30A46C)
+
 // ---- Светлая палитра ----
 val DayBackground = Color(0xFFF6F7FB)
 val DaySurface = Color(0xFFFFFFFF)
@@ -97,8 +107,10 @@ fun SleepTrackerTheme(
                 else colors.background
             window.statusBarColor = barColor.toArgb()
             window.navigationBarColor = barColor.toArgb()
-            // на светлой теме без фото иконки статус-бара должны быть тёмными
-            val lightIcons = !darkTheme && !transparentSystemBars
+            // Иконки статус-бара зависят только от темы: фон под ними —
+            // это заливка цветом темы поверх фото, а не само фото.
+            // Раньше с фото в светлой теме иконки оставались белыми и терялись.
+            val lightIcons = !darkTheme
             WindowCompat.getInsetsController(window, view).apply {
                 isAppearanceLightStatusBars = lightIcons
                 isAppearanceLightNavigationBars = lightIcons

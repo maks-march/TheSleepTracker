@@ -6,8 +6,9 @@
 
 **[TheSleepTracker.apk](apk/TheSleepTracker.apk)** — [прямая ссылка на загрузку](https://github.com/maks-march/TheSleepTracker/raw/main/apk/TheSleepTracker.apk)
 
-Android 8.0+ (minSdk 26). APK подписан отладочным ключом, поэтому при установке
-разрешите «Установку из неизвестных источников».
+Android 8.0+ (minSdk 26). При первой установке разрешите «Установку из неизвестных
+источников». APK подписан постоянным ключом `keystore/thesleeptracker.jks`, поэтому
+следующие версии ставятся поверх прямо из приложения кнопкой «Обновить».
 
 ## Что умеет
 
@@ -141,13 +142,17 @@ cd SleepTracker
 # APK: app/build/outputs/apk/debug/app-debug.apk
 ./gradlew installDebug   # на подключённое устройство/эмулятор
 
-# сборка того APK, что лежит в /apk/ (release, подписан debug-ключом)
+# release — тот APK, что лежит в /apk/
 ./gradlew assembleRelease
-cp app/build/outputs/apk/release/app-release.apk apk/TheSleepTracker.apk
 ```
 
-`local.properties` содержит путь к SDK этой машины — при переносе замените `sdk.dir` на свой
-или удалите файл (Android Studio создаст заново).
+Нужен JDK 17 и Android SDK (в Android Studio уже есть). `local.properties` в репозиторий
+не входит — Android Studio создаст его сама, либо пропишите свой путь:
+`echo "sdk.dir=/путь/к/Android/Sdk" > local.properties`.
+
+Release-сборка подписывается ключом `keystore/thesleeptracker.jks`. Пароли по умолчанию
+зашиты в `app/build.gradle.kts`; чтобы задать свои, скопируйте `keystore.properties.example`
+в `keystore.properties` (он в `.gitignore`).
 
 ## Пример текста «Поделиться»
 
@@ -163,6 +168,23 @@ Best night: 8 h 40 min
 Tracked with TheSleepTracker
 Get the app: https://github.com/maks-march/TheSleepTracker/raw/main/apk/TheSleepTracker.apk
 ```
+
+## Данные и обновления
+
+База `sleep.db` лежит во внутреннем хранилище приложения, поэтому установка
+новой версии **поверх** старой записи не трогает. Room намеренно собран без
+`fallbackToDestructiveMigration()` — при смене схемы он не удалит данные молча,
+а потребует миграцию (см. `SleepDatabase.MIGRATIONS`).
+
+Дополнительно:
+- `backup_rules.xml` / `data_extraction_rules.xml` — база, настройки и фон
+  попадают в облачный бэкап Android и в перенос на новое устройство;
+- **Настройки → «Резервная копия»** сохраняет все записи в .json в «Загрузки»,
+  **«Восстановить из копии»** читает его обратно. Дубликаты (та же пара
+  «лёг/проснулся») при импорте пропускаются, так что повторный импорт безопасен.
+
+Копия нужна только там, где обновиться поверх нельзя — например, при смене
+ключа подписи.
 
 ## Как выпустить обновление
 

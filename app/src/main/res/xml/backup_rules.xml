@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Что Android кладёт в облачный бэкап на Android 11 и старше.
+
+  Без этого файла резервная копия делается «как получится»: сюда попадает
+  база сна, настройки и картинка фона, а кэш и скачанный APK — нет.
+-->
+<full-backup-content>
+    <!-- база записей сна (sleep.db вместе с -wal и -shm) -->
+    <include domain="database" path="." />
+    <!-- тема, язык, напоминания -->
+    <include domain="sharedpref" path="." />
+    <!-- выбранный фон -->
+    <include domain="file" path="background.jpg" />
+
+    <!-- временные файлы восстанавливать бессмысленно -->
+    <exclude domain="external" path="Download" />
+</full-backup-content>

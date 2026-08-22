@@ -4,10 +4,9 @@ import android.content.Context
 import androidx.annotation.StringRes
 import com.example.sleeptracker.R
 import com.example.sleeptracker.data.SleepEntry
+import com.example.sleeptracker.util.DateFormats
 import java.time.LocalDate
 import java.time.YearMonth
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 /** Период аналитики. */
 enum class Period(@StringRes val titleRes: Int) {
@@ -21,7 +20,30 @@ data class ChartPoint(
     val label: String,
     val hours: Double,
     val quality: Double,
-)
+) {
+    /** Группа качества — определяет цвет столбика. */
+    val qualityBand: QualityBand get() = QualityBand.of(quality)
+}
+
+/**
+ * Диапазоны оценки сна: 0–4 плохо, 5–7 средне, 8–10 хорошо.
+ *
+ * Оценка за день может быть дробной (среднее за несколько записей или за месяц),
+ * поэтому перед сравнением округляем — 4.6 попадает в «средне», а не в «плохо».
+ */
+enum class QualityBand {
+    POOR,
+    FAIR,
+    GOOD;
+
+    companion object {
+        fun of(quality: Double): QualityBand = when (Math.round(quality)) {
+            in Long.MIN_VALUE..4L -> POOR
+            in 5L..7L -> FAIR
+            else -> GOOD
+        }
+    }
+}
 
 /** Сводка за период. */
 data class PeriodSummary(
@@ -35,10 +57,6 @@ data class PeriodSummary(
 ) {
     val hasData: Boolean get() = entryCount > 0
 }
-
-// форматтеры зависят от текущей локали, поэтому создаются на каждый вызов
-private fun dayLabel() = DateTimeFormatter.ofPattern("d.MM", Locale.getDefault())
-private fun monthLabel() = DateTimeFormatter.ofPattern("LLL", Locale.getDefault())
 
 /**
  * Считает сводку за период. Записи группируются по дате пробуждения:
@@ -61,7 +79,7 @@ private fun byDays(entries: List<SleepEntry>, today: LocalDate, days: Int): Peri
         !d.isBefore(from) && !d.isAfter(today)
     }
     val grouped = inRange.groupBy { it.wakeTime.toLocalDate() }
-    val fmt = dayLabel()
+    val fmt = DateFormats.shortDay()
 
     val points = (0 until days).map { offset ->
         val date = from.plusDays(offset.toLong())
@@ -83,7 +101,7 @@ private fun byMonths(entries: List<SleepEntry>, today: LocalDate, months: Int): 
         !ym.isBefore(from) && !ym.isAfter(current)
     }
     val grouped = inRange.groupBy { YearMonth.from(it.wakeTime.toLocalDate()) }
-    val fmt = monthLabel()
+    val fmt = DateFormats.shortMonth()
 
     val points = (0 until months).map { offset ->
         val ym = from.plusMonths(offset.toLong())

@@ -42,11 +42,7 @@ import com.example.sleeptracker.ui.components.screenBackgroundColor
 import com.example.sleeptracker.analytics.formatMinutes
 import com.example.sleeptracker.data.SleepEntry
 import com.example.sleeptracker.ui.SleepViewModel
-import java.time.format.DateTimeFormatter
-import java.util.Locale
-
-private fun dateFmt() = DateTimeFormatter.ofPattern("EEEE, d MMMM", Locale.getDefault())
-private val timeFmt: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
+import com.example.sleeptracker.util.DateFormats
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -124,7 +120,7 @@ private fun EntryCard(entry: SleepEntry, onClick: () -> Unit, onDelete: () -> Un
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     Text(
-                        entry.wakeTime.format(dateFmt()).replaceFirstChar { it.uppercase() },
+                        entry.wakeTime.format(DateFormats.dayWithWeekday()).replaceFirstChar { it.uppercase() },
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -152,7 +148,7 @@ private fun EntryCard(entry: SleepEntry, onClick: () -> Unit, onDelete: () -> Un
             }
             Spacer(Modifier.height(8.dp))
             Text(
-                "${entry.bedTime.format(timeFmt)} → ${entry.wakeTime.format(timeFmt)}  ·  " +
+                "${entry.bedTime.format(DateFormats.time)} → ${entry.wakeTime.format(DateFormats.time)}  ·  " +
                     stringResource(R.string.journal_fell_asleep_in, entry.fallAsleepMinutes),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,

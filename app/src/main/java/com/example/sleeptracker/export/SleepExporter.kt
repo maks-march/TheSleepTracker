@@ -7,11 +7,10 @@ import android.os.Environment
 import android.provider.MediaStore
 import com.example.sleeptracker.R
 import com.example.sleeptracker.data.SleepEntry
+import com.example.sleeptracker.util.DateFormats
 import java.io.File
 import java.io.OutputStream
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 /** Выгружает записи сна в .xlsx прямо в папку «Загрузки». */
 object SleepExporter {
@@ -86,8 +85,8 @@ object SleepExporter {
     }
 
     private fun writeWorkbook(context: Context, out: OutputStream, entries: List<SleepEntry>) {
-        val dateFmt = DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.getDefault())
-        val timeFmt = DateTimeFormatter.ofPattern("HH:mm", Locale.getDefault())
+        val dateFmt = DateFormats.exportDate()
+        val timeFmt = DateFormats.time
 
         val header = listOf(
             context.getString(R.string.excel_col_date),
@@ -124,7 +123,7 @@ object SleepExporter {
 
     /** Имя с датой, чтобы выгрузки не затирали друг друга. */
     private fun buildFileName(): String {
-        val stamp = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+        val stamp = LocalDate.now().format(DateFormats.fileStamp)
         return "TheSleepTracker-$stamp.xlsx"
     }
 }

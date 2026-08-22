@@ -46,15 +46,11 @@ import com.example.sleeptracker.data.SleepEntry
 import com.example.sleeptracker.ui.SleepViewModel
 import com.example.sleeptracker.ui.components.showDatePicker
 import com.example.sleeptracker.ui.components.showTimePicker
+import com.example.sleeptracker.util.DateFormats
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
-import java.time.format.DateTimeFormatter
-import java.util.Locale
-
-private fun dateFmt() = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.getDefault())
-private val timeFmt: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -163,8 +159,8 @@ fun EntryEditorScreen(
 
             SectionTitle(stringResource(R.string.editor_bed_time))
             DateTimeRow(
-                dateText = bedTime.format(dateFmt()),
-                timeText = bedTime.format(timeFmt),
+                dateText = bedTime.format(DateFormats.fullDate()),
+                timeText = bedTime.format(DateFormats.time),
                 onPickDate = {
                     showDatePicker(context, bedTime.toLocalDate()) { d ->
                         bedTime = LocalDateTime.of(d, bedTime.toLocalTime())
@@ -179,8 +175,8 @@ fun EntryEditorScreen(
 
             SectionTitle(stringResource(R.string.editor_wake_time))
             DateTimeRow(
-                dateText = wakeTime.format(dateFmt()),
-                timeText = wakeTime.format(timeFmt),
+                dateText = wakeTime.format(DateFormats.fullDate()),
+                timeText = wakeTime.format(DateFormats.time),
                 onPickDate = {
                     showDatePicker(context, wakeTime.toLocalDate()) { d ->
                         wakeTime = LocalDateTime.of(d, wakeTime.toLocalTime())

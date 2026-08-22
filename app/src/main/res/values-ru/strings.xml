@@ -5,7 +5,6 @@
     <!-- Вкладки -->
     <string name="tab_journal">Дневник</string>
     <string name="tab_analytics">Аналитика</string>
-    <string name="tab_settings">Настройки</string>
 
     <!-- Дневник -->
     <string name="journal_title">Дневник сна</string>
@@ -40,7 +39,6 @@
     <string name="analytics_avg_sleep">Средний сон</string>
     <string name="analytics_avg_quality">Оценка</string>
     <string name="analytics_avg_fall_asleep">Засыпание</string>
-    <string name="analytics_share">Поделиться</string>
     <string name="analytics_share_chooser">Поделиться результатами</string>
 
     <!-- Текст «поделиться» -->
@@ -69,7 +67,6 @@
     <string name="settings_about_text">Простой трекер сна. Все данные хранятся только на вашем устройстве.</string>
     <string name="settings_version">Версия %1$s</string>
     <string name="settings_source">Проект на GitHub</string>
-    <string name="settings_source_subtitle">Исходный код и загрузка APK</string>
 
     <!-- Excel -->
     <string name="excel_sheet_name">Сон</string>
@@ -125,10 +122,7 @@
     <string name="onboarding_skip">Не сейчас</string>
 
     <!-- Обновление -->
-    <string name="settings_update">Скачать свежий APK</string>
-    <string name="settings_update_subtitle">Загружает сборку с GitHub и предлагает установить</string>
     <string name="update_started">Загрузка…</string>
-    <string name="update_done">Загрузка завершена</string>
     <string name="update_failed">Не удалось загрузить</string>
 
     <!-- Обрезка -->
@@ -153,10 +147,18 @@
     <string name="action_settings">Настройки</string>
     <string name="action_share">Поделиться</string>
 
-    <string name="time_picker_title">Выберите время</string>
-    <string name="time_picker_hours">Выберите часы</string>
-    <string name="time_picker_minutes">Выберите минуты</string>
-    <string name="time_picker_ok">Ok</string>
-    <string name="time_picker_cancel">Отмена</string>
     <string name="update_needs_permission">Разрешите установку приложений из TheSleepTracker и нажмите «Обновить» ещё раз</string>
+    <string name="settings_backup">Резервная копия</string>
+    <string name="settings_backup_subtitle">Сохранить все записи в файл, чтобы потом восстановить</string>
+    <string name="settings_backup_saved">Копия сохранена в «Загрузки»: %1$s</string>
+    <string name="settings_backup_empty">Пока нечего сохранять</string>
+    <string name="settings_backup_error">Не удалось сохранить копию</string>
+    <string name="settings_restore">Восстановить из копии</string>
+    <string name="settings_restore_subtitle">Добавить записи из файла резервной копии</string>
+    <string name="settings_restore_done">Восстановлено: %1$d добавлено, %2$d уже были</string>
+    <string name="settings_restore_error">Не удалось прочитать файл копии</string>
+    <string name="analytics_legend_poor">0–4</string>
+    <string name="analytics_legend_fair">5–7</string>
+    <string name="analytics_legend_good">8–10</string>
+    <string name="analytics_legend_title">Оценка сна</string>
 </resources>

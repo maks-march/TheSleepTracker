@@ -11,6 +11,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -43,8 +47,12 @@ import androidx.compose.ui.unit.sp
 import com.example.sleeptracker.BuildConfig
 import com.example.sleeptracker.R
 import com.example.sleeptracker.ui.components.screenBackgroundColor
+import com.example.sleeptracker.ui.theme.QualityFair
+import com.example.sleeptracker.ui.theme.QualityGood
+import com.example.sleeptracker.ui.theme.QualityPoor
 import com.example.sleeptracker.analytics.Period
 import com.example.sleeptracker.analytics.PeriodSummary
+import com.example.sleeptracker.analytics.QualityBand
 import com.example.sleeptracker.analytics.formatHours
 import com.example.sleeptracker.ui.SleepViewModel
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
@@ -62,13 +70,16 @@ import com.patrykandpatrick.vico.core.cartesian.axis.HorizontalAxis as CoreHoriz
 import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis as CoreVerticalAxis
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianValueFormatter
+import com.patrykandpatrick.vico.core.cartesian.data.ColumnCartesianLayerModel
 import com.patrykandpatrick.vico.core.cartesian.data.columnSeries
 import com.patrykandpatrick.vico.core.cartesian.layer.ColumnCartesianLayer
+import com.patrykandpatrick.vico.core.common.component.LineComponent
 import com.patrykandpatrick.vico.core.common.data.ExtraStore
 import com.patrykandpatrick.vico.core.common.shape.CorneredShape
 import java.util.Locale
 
 private val LabelsKey = ExtraStore.Key<List<String>>()
+private val BandsKey = ExtraStore.Key<List<Int>>()
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -151,6 +162,8 @@ fun AnalyticsScreen(vm: SleepViewModel) {
                     Spacer(Modifier.height(12.dp))
                     if (summary.hasData) {
                         SleepChart(summary)
+                        Spacer(Modifier.height(12.dp))
+                        QualityLegend()
                     } else {
                         Box(
                             Modifier.fillMaxWidth().height(220.dp),
@@ -207,6 +220,44 @@ private fun buildShareText(
     append(context.getString(R.string.share_footer))
     appendLine()
     append(context.getString(R.string.share_download, BuildConfig.APK_URL))
+}
+
+/** Расшифровка цветов столбиков. */
+@Composable
+private fun QualityLegend() {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            stringResource(R.string.analytics_legend_title),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        LegendItem(QualityPoor, stringResource(R.string.analytics_legend_poor))
+        LegendItem(QualityFair, stringResource(R.string.analytics_legend_fair))
+        LegendItem(QualityGood, stringResource(R.string.analytics_legend_good))
+    }
+}
+
+@Composable
+private fun LegendItem(color: Color, label: String) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(5.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
+            Modifier
+                .size(10.dp)
+                .background(color, RoundedCornerShape(2.dp))
+        )
+        Text(
+            label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
 }
 
 @Composable
@@ -268,13 +319,54 @@ private fun SleepChart(summary: PeriodSummary) {
     LaunchedEffect(summary) {
         modelProducer.runTransaction {
             columnSeries { series(summary.points.map { it.hours }) }
-            extras { it[LabelsKey] = summary.points.map { p -> p.label } }
+            extras {
+                it[LabelsKey] = summary.points.map { p -> p.label }
+                // ordinal вместо самого enum: в ExtraStore кладём простые типы
+                it[BandsKey] = summary.points.map { p -> p.qualityBand.ordinal }
+            }
         }
     }
 
     val labelColor = MaterialTheme.colorScheme.onSurfaceVariant
     val lineColor = MaterialTheme.colorScheme.outlineVariant
-    val barColor = MaterialTheme.colorScheme.primary
+
+    val thickness = if (summary.points.size > 12) 8.dp else 16.dp
+    val barShape = CorneredShape.rounded(allDp = 4f)
+
+    // цвет столбика по оценке сна: 0-4 красный, 5-7 жёлтый, 8-10 зелёный
+    val poorColumn = rememberLineComponent(
+        fill = fill(QualityPoor), thickness = thickness, shape = barShape,
+    )
+    val fairColumn = rememberLineComponent(
+        fill = fill(QualityFair), thickness = thickness, shape = barShape,
+    )
+    val goodColumn = rememberLineComponent(
+        fill = fill(QualityGood), thickness = thickness, shape = barShape,
+    )
+
+    val columnProvider = remember(poorColumn, fairColumn, goodColumn) {
+        object : ColumnCartesianLayer.ColumnProvider {
+            private fun columnFor(band: Int) = when (band) {
+                QualityBand.POOR.ordinal -> poorColumn
+                QualityBand.FAIR.ordinal -> fairColumn
+                else -> goodColumn
+            }
+
+            override fun getColumn(
+                entry: ColumnCartesianLayerModel.Entry,
+                seriesIndex: Int,
+                extraStore: ExtraStore,
+            ): LineComponent {
+                val bands = extraStore.getOrNull(BandsKey).orEmpty()
+                return columnFor(bands.getOrNull(entry.x.toInt()) ?: QualityBand.GOOD.ordinal)
+            }
+
+            override fun getWidestSeriesColumn(
+                seriesIndex: Int,
+                extraStore: ExtraStore,
+            ): LineComponent = goodColumn
+        }
+    }
 
     val bottomFormatter = CartesianValueFormatter { context, x, _ ->
         val labels = context.model.extraStore.getOrNull(LabelsKey).orEmpty()
@@ -293,15 +385,7 @@ private fun SleepChart(summary: PeriodSummary) {
 
     CartesianChartHost(
         chart = rememberCartesianChart(
-            rememberColumnCartesianLayer(
-                columnProvider = ColumnCartesianLayer.ColumnProvider.series(
-                    rememberLineComponent(
-                        fill = fill(barColor),
-                        thickness = if (summary.points.size > 12) 8.dp else 16.dp,
-                        shape = CorneredShape.rounded(allDp = 4f),
-                    )
-                ),
-            ),
+            rememberColumnCartesianLayer(columnProvider = columnProvider),
             startAxis = CoreVerticalAxis.rememberStart(
                 label = rememberAxisLabelComponent(color = labelColor, textSize = 11.sp),
                 line = rememberAxisLineComponent(fill = fill(lineColor)),

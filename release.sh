@@ -66,10 +66,14 @@ PY
 echo "==> version.json:"
 cat version.json
 
-# 5. проверяем, что подпись не поменялась — иначе обновление не встанет поверх
-if command -v apksigner >/dev/null 2>&1; then
-  echo "==> Подпись:"
-  apksigner verify --print-certs apk/TheSleepTracker.apk | grep -i "SHA-256 digest" | head -1
+# 5. проверяем подпись — если она изменится, обновление не встанет поверх
+APKSIGNER=$(command -v apksigner || ls "$ANDROID_HOME"/build-tools/*/apksigner 2>/dev/null | tail -1)
+if [[ -n "${APKSIGNER:-}" ]]; then
+  echo "==> Подпись (должна совпадать во всех версиях):"
+  "$APKSIGNER" verify --print-certs apk/TheSleepTracker.apk \
+    | grep -i "SHA-256 digest" | head -1
+else
+  echo "==> apksigner не найден, проверку подписи пропускаю"
 fi
 
 # 6. коммит и пуш

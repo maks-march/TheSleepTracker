@@ -8,13 +8,11 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -25,19 +23,17 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.TableChart
+import androidx.compose.material.icons.filled.Restore
+import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -49,12 +45,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.example.sleeptracker.BuildConfig
@@ -67,10 +61,13 @@ import com.example.sleeptracker.ui.components.ImageCropperDialog
 import com.example.sleeptracker.ui.SleepViewModel
 import com.example.sleeptracker.update.ApkDownloader
 import com.example.sleeptracker.update.UpdateChecker
+import com.example.sleeptracker.util.DateFormats
+import com.example.sleeptracker.ui.components.IconRow
+import com.example.sleeptracker.ui.components.SwitchRow
+import com.example.sleeptracker.ui.components.RadioRow
+import com.example.sleeptracker.ui.components.SettingsCard
 import kotlinx.coroutines.launch
 import java.time.LocalTime
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -171,6 +168,26 @@ fun SettingsScreen(vm: SleepViewModel, onBack: () -> Unit = {}) {
             val errorMsg = stringResource(R.string.settings_export_error)
             val savedMsg = stringResource(R.string.settings_export_saved)
 
+            val backupSavedMsg = stringResource(R.string.settings_backup_saved)
+            val backupEmptyMsg = stringResource(R.string.settings_backup_empty)
+            val backupErrorMsg = stringResource(R.string.settings_backup_error)
+            val restoreDoneMsg = stringResource(R.string.settings_restore_done)
+            val restoreErrorMsg = stringResource(R.string.settings_restore_error)
+
+            // выбор файла копии для восстановления
+            val restorePicker = rememberLauncherForActivityResult(
+                ActivityResultContracts.OpenDocument()
+            ) { uri: Uri? ->
+                if (uri != null) {
+                    vm.restore(uri) { result ->
+                        val msg =
+                            if (result == null) restoreErrorMsg
+                            else String.format(restoreDoneMsg, result.added, result.skipped)
+                        Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                    }
+                }
+            }
+
             SettingsCard(title = stringResource(R.string.settings_data)) {
                 IconRow(
                     icon = { Icon(Icons.Default.TableChart, null, tint = MaterialTheme.colorScheme.primary) },
@@ -186,6 +203,32 @@ fun SettingsScreen(vm: SleepViewModel, onBack: () -> Unit = {}) {
                             else savedMsg.format(saved.fileName)
                         Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
                     }
+                }
+
+                IconRow(
+                    icon = { Icon(Icons.Default.Save, null, tint = MaterialTheme.colorScheme.primary) },
+                    title = stringResource(R.string.settings_backup),
+                    subtitle = stringResource(R.string.settings_backup_subtitle),
+                ) {
+                    if (entries.isEmpty()) {
+                        Toast.makeText(context, backupEmptyMsg, Toast.LENGTH_SHORT).show()
+                    } else {
+                        vm.backup { saved ->
+                            val msg =
+                                if (saved == null) backupErrorMsg
+                                else String.format(backupSavedMsg, saved.fileName)
+                            Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                        }
+                    }
+                }
+
+                IconRow(
+                    icon = { Icon(Icons.Default.Restore, null, tint = MaterialTheme.colorScheme.primary) },
+                    title = stringResource(R.string.settings_restore),
+                    subtitle = stringResource(R.string.settings_restore_subtitle),
+                ) {
+                    // json отдают под разными mime — берём всё, проверим при разборе
+                    restorePicker.launch(arrayOf("application/json", "text/plain", "*/*"))
                 }
             }
 
@@ -295,7 +338,7 @@ private fun RemindersCard(
     avgWakeTime: LocalTime,
 ) {
     val context = LocalContext.current
-    val timeFmt = remember { DateTimeFormatter.ofPattern("HH:mm", Locale.getDefault()) }
+    val timeFmt = DateFormats.time
 
     val deniedMsg = stringResource(R.string.settings_notifications_denied)
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -434,98 +477,6 @@ private fun UpdateCard() {
                     ).show()
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun SettingsCard(
-    title: String,
-    content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit,
-) {
-    Card(
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
-        ),
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Column(Modifier.padding(16.dp)) {
-            Text(
-                title,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Spacer(Modifier.height(8.dp))
-            content()
-        }
-    }
-}
-
-@Composable
-private fun RadioRow(label: String, selected: Boolean, onSelect: () -> Unit) {
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onSelect)
-            .padding(vertical = 6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        RadioButton(selected = selected, onClick = onSelect)
-        Text(label, style = MaterialTheme.typography.bodyLarge)
-    }
-}
-
-@Composable
-private fun SwitchRow(
-    title: String,
-    subtitle: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-) {
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .clickable { onCheckedChange(!checked) }
-            .padding(vertical = 6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.bodyLarge)
-            Text(
-                subtitle,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        Spacer(Modifier.padding(horizontal = 4.dp))
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
-    }
-}
-
-@Composable
-private fun IconRow(
-    icon: @Composable () -> Unit,
-    title: String,
-    subtitle: String,
-    onClick: () -> Unit,
-) {
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        icon()
-        Spacer(Modifier.padding(horizontal = 6.dp))
-        Column(Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.bodyLarge)
-            Text(
-                subtitle,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
         }
     }
 }
