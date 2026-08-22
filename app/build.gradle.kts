@@ -15,8 +15,8 @@ android {
         applicationId = "com.example.sleeptracker"
         minSdk = 26
         targetSdk = 35
-        versionCode = 5
-        versionName = "1.4"
+        versionCode = 10
+        versionName = "1.6"
 
         // Ссылки на проект и прямую загрузку APK — используются в «Поделиться» и настройках
         buildConfigField(
